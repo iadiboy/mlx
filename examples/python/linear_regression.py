@@ -1,7 +1,6 @@
 # Copyright © 2023 Apple Inc.
 
 import time
-
 import mlx.core as mx
 
 num_features = 100
@@ -22,25 +21,30 @@ y = X @ w_star + eps
 # Initialize random parameters
 w = 1e-2 * mx.random.normal((num_features,))
 
-
+# Define the loss function
 def loss_fn(w):
-    return 0.5 * mx.mean(mx.square(X @ w - y))
+    return 0.5 * mx.mean((X @ w - y)**2)
 
-
+# Compute the gradient of the loss function
 grad_fn = mx.grad(loss_fn)
 
+# Training loop
 tic = time.time()
 for _ in range(num_iters):
     grad = grad_fn(w)
-    w = w - lr * grad
-    mx.eval(w)
+    mx.step(w, lr, grad)  # Update parameters using the gradient and learning rate
 toc = time.time()
 
+# Calculate final loss and error
 loss = loss_fn(w)
-error_norm = mx.sum(mx.square(w - w_star)).item() ** 0.5
+error_norm = mx.sum((w - w_star)**2).item() ** 0.5
+
+# Calculate throughput
 throughput = num_iters / (toc - tic)
 
+# Print results
 print(
-    f"Loss {loss.item():.5f}, L2 distance: |w-w*| = {error_norm:.5f}, "
+    f"Loss {loss:.5f}, L2 distance: |w-w*| = {error_norm:.5f}, "
     f"Throughput {throughput:.5f} (it/s)"
 )
+
